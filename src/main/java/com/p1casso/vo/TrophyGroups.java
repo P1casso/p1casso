@@ -12,4 +12,5 @@ public class TrophyGroups {
     private String trophyGroupName;
     private String trophyGroupIconUrl;
     private Trophies definedTrophies;
+    private Trophies earnedTrophies;
 }

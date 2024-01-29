@@ -20,7 +20,21 @@ public enum PSUrlEnum {
 
     TROPHY_GROUPS_EARNED_PS5("https://m.np.playstation.com/api/trophy/v1/users/1744982702939037104/npCommunicationIds/%s/trophyGroups"),
 
-    TROPHY_GROUPS_EARNED_PS4("https://m.np.playstation.com/api/trophy/v1/users/1744982702939037104/npCommunicationIds/%s/trophyGroups?npServiceName=trophy");
+    TROPHY_GROUPS_EARNED_PS4("https://m.np.playstation.com/api/trophy/v1/users/1744982702939037104/npCommunicationIds/%s/trophyGroups?npServiceName=trophy"),
+
+    /**
+     * 游戏奖杯列表（不包含获得情况）
+     */
+    TROPHY_LIST_PS5("https://m.np.playstation.com/api/trophy/v1/npCommunicationIds/%s/trophyGroups/all/trophies"),
+
+    TROPHY_LIST_PS4("https://m.np.playstation.com/api/trophy/v1/npCommunicationIds/%s/trophyGroups/all/trophies?npServiceName=trophy"),
+
+    /**
+     * 游戏奖杯列表（包含获得情况）
+     */
+    TROPHY_LIST_EARNED_PS5("https://m.np.playstation.com/api/trophy/v1/users/1744982702939037104/npCommunicationIds/%s/trophyGroups/all/trophies"),
+
+    TROPHY_LIST_EARNED_PS4("https://m.np.playstation.com/api/trophy/v1/users/1744982702939037104/npCommunicationIds/%s/trophyGroups/all/trophies?npServiceName=trophy");
 
     private final String url;
 

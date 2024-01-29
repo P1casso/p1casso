@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.Date;
+import java.util.List;
 
 /**
  * Auto-generated: 2024-01-05 18:12:49
@@ -31,4 +32,5 @@ public class TrophyTitles {
     private Trophies earnedTrophies;
     private boolean hiddenFlag;
     private Date lastUpdatedDateTime;
+    private List<TrophyGroups> trophyGroups;
 }

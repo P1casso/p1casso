@@ -11,4 +11,11 @@ import com.p1casso.entity.PsGameTrophy;
  */
 public interface PsGameTrophyService extends IService<PsGameTrophy> {
 
+    /**
+     * 根据NpCommunicationId获取游戏奖杯获得情况
+     *
+     * @param id CommunicationId
+     * @return 奖杯获得情况
+     */
+    PsGameTrophy getTrophyGroupByNpCommunicationId(String id);
 }

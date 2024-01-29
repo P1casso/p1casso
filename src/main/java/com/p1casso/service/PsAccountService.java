@@ -20,23 +20,38 @@ public interface PsAccountService extends IService<PsAccount> {
     /**
      * 刷新token
      *
-     * @return
+     * @return 刷新后的accessToken
      */
     String refreshToken() throws IOException;
 
+    /**
+     * 校验RefreshToken是否可用
+     *
+     * @return 如果可用返回账户信息，否则返回null
+     */
     PsAccount checkRefreshTokenAvailable();
 
+    /**
+     * 登录
+     *
+     * @return 带认证的HeadMap
+     */
     Map<String, String> login() throws IOException;
 
     /**
-     * 获取奖杯统计数据并写入本地
+     * 刷新奖杯统计数据（白金：xxx,金：xxx,银：xxx,铜：xxx）
      */
     void refreshTrophyStatistics() throws IOException;
 
+    /**
+     * 获取账号所有游戏奖杯统计
+     * （游戏奖杯：白金：xxx,金：xxx,银：xxx,铜：xxx；已获得：白金：xxx,金：xxx,银：xxx,铜：xxx）
+     */
     void getTrophyTitles() throws IOException;
 
     /**
      * 更新/新增游戏的DLC奖杯信息
+     * （游戏A，本体奖杯：白金：xxx,金：xxx,银：xxx,铜：xxx；DLC1奖杯：白金：xxx,金：xxx,银：xxx,铜：xxx）
      *
      * @param console           主机类型
      * @param npCommunicationId 游戏npCommunicationId
@@ -59,6 +74,6 @@ public interface PsAccountService extends IService<PsAccount> {
     /**
      * 更新游戏分组的奖杯获取统计
      */
-    void updateGroupsTrophy(String npCommunicatioinId, ConsoleEnum console) throws IOException;
+    void updateGroupsTrophy() throws IOException;
 
 }

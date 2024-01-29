@@ -3,22 +3,27 @@ package com.p1casso.service.impl;
 import cn.hutool.core.date.DateField;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.reflect.TypeToken;
 import com.p1casso.Utils.HttpUtils;
 import com.p1casso.entity.PsAccount;
 import com.p1casso.entity.PsGameTrophy;
+import com.p1casso.entity.PsTrophy;
 import com.p1casso.enums.ConsoleEnum;
 import com.p1casso.exception.P1cassoException;
 import com.p1casso.mapper.PsAccountMapper;
 import com.p1casso.service.PsAccountService;
+import com.p1casso.vo.Trophies;
 import com.p1casso.vo.TrophyGroup;
 import com.p1casso.vo.TrophyGroups;
 import com.p1casso.vo.TrophyTitles;
+import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import org.springframework.stereotype.Service;
 
@@ -37,6 +42,8 @@ import static com.p1casso.enums.PSUrlEnum.*;
  * @description 针对表【ps_account】的数据库操作Service实现
  * @createDate 2023-12-31 12:33:41
  */
+
+@Slf4j
 @Service
 public class PsAccountServiceImpl extends ServiceImpl<PsAccountMapper, PsAccount> implements PsAccountService {
 
@@ -44,10 +51,11 @@ public class PsAccountServiceImpl extends ServiceImpl<PsAccountMapper, PsAccount
     private PsGameTrophyServiceImpl psGameTrophyService;
 
     @Override
-    public Map<String, String> login() throws IOException {
+    public Map<String, String> login() {
         //首先判断数据库的token是否存在/过期，如果有效，则直接返回
         PsAccount account = super.getOne(null);
         Map<String, String> header = new HashMap<>();
+        header.put("Accept-Language", "zh-Hans");
         if (StrUtil.isNotBlank(account.getToken()) && DateUtil.compare(new Date(), account.getTokenExpirationTime()) < 0) {
             header.put("Authorization", "Basic " + account.getToken());
         } else if (StrUtil.isNotBlank(account.getRefreshToken()) && DateUtil.compare(new Date(), account.getRefreshTokenExpirationTime()) < 0) {
@@ -67,10 +75,11 @@ public class PsAccountServiceImpl extends ServiceImpl<PsAccountMapper, PsAccount
                 if (code == null) {
                     throw new P1cassoException("无法获code");
                 }
+            } catch (IOException e) {
+                throw new P1cassoException("请求失败");
             }
             //获取access token
             String url = "https://ca.account.sony.com/api/authz/v3/oauth/token";
-            header = new HashMap<>();
             header.put("Cookie", "npsso=" + account.getNpsso());
             header.put("Authorization", "Basic MDk1MTUxNTktNzIzNy00MzcwLTliNDAtMzgwNmU2N2MwODkxOnVjUGprYTV0bnRCMktxc1A=");
             header.put("User-Agent", "PlayStation/21090100 CFNetwork/1126 Darwin/19.5.0");
@@ -82,9 +91,7 @@ public class PsAccountServiceImpl extends ServiceImpl<PsAccountMapper, PsAccount
             body.add("grant_type", "authorization_code");
             body.add("token_format", "jwt");
 
-            ResponseBody responseBody;
-            responseBody = HttpUtils.okHttpPost(url, header, body);
-            String responseString = responseBody.string();
+            String responseString = HttpUtils.okHttpPost(url, header, body);
             Gson gson = new Gson();
             JsonElement jsonElement = gson.fromJson(responseString, JsonElement.class);
             String accessToken;
@@ -126,7 +133,7 @@ public class PsAccountServiceImpl extends ServiceImpl<PsAccountMapper, PsAccount
 //    }
 
     @Override
-    public String refreshToken() throws IOException {
+    public String refreshToken() {
         //先校验RefreshToken是否有效
         PsAccount psAccount = checkRefreshTokenAvailable();
         //刷新token
@@ -143,8 +150,7 @@ public class PsAccountServiceImpl extends ServiceImpl<PsAccountMapper, PsAccount
         body.add("grant_type", "refresh_token");
         body.add("token_format", "jwt");
 
-        ResponseBody responseBody = HttpUtils.okHttpPost(url, header, body);
-        String responseString = responseBody.string();
+        String responseString = HttpUtils.okHttpPost(url, header, body);
         Gson gson = new Gson();
         JsonElement jsonElement = gson.fromJson(responseString, JsonElement.class);
         String accessToken;
@@ -182,7 +188,6 @@ public class PsAccountServiceImpl extends ServiceImpl<PsAccountMapper, PsAccount
         }
     }
 
-
     @Override
     public void refreshTrophyStatistics() throws IOException {
         //获取access token
@@ -205,7 +210,7 @@ public class PsAccountServiceImpl extends ServiceImpl<PsAccountMapper, PsAccount
     }
 
     @Override
-    public void getTrophyTitles() throws IOException {
+    public void getTrophyTitles() {
         Map<String, String> header = login();
         header.put("Accept-Language", "zh-Hans");
         String responseString = HttpUtils.okHttpGet(TROPHY_TITLES.getUrl(), header);
@@ -309,19 +314,47 @@ public class PsAccountServiceImpl extends ServiceImpl<PsAccountMapper, PsAccount
     }
 
     @Override
-    public void updateGroupsTrophy(String npCommunicationId, ConsoleEnum console) throws IOException {
+    public void updateGroupsTrophy() {
         Map<String, String> header = this.login();
-        String URL;
-        if (console == PS5) {
-            URL = TROPHY_GROUPS_EARNED_PS5.getUrl(npCommunicationId);
-        } else if (console == PS4_AND_OTHERS) {
-            URL = TROPHY_GROUPS_EARNED_PS5.getUrl(npCommunicationId);
-        } else {
-            throw new P1cassoException("未适配该游戏机");
+        QueryWrapper<PsGameTrophy> psGameTrophyQueryWrapper = new QueryWrapper<>();
+        psGameTrophyQueryWrapper.eq("hasTrophyGroups", "1");
+        psGameTrophyQueryWrapper.eq("pnpCommunicationId", "0");
+        List<PsGameTrophy> hasTrophyGroupsList = psGameTrophyService.list(psGameTrophyQueryWrapper);
+        List<PsGameTrophy> updateList = new ArrayList<>();
+        for (PsGameTrophy psGameTrophy : hasTrophyGroupsList) {
+            String console = psGameTrophy.getTrophytitleplatform();
+            String npcommunicationid = psGameTrophy.getNpcommunicationid();
+            String URL = null;
+            if (Objects.equals(console, "PS5")) {
+                URL = TROPHY_GROUPS_EARNED_PS5.getUrl(npcommunicationid);
+            } else if (Objects.equals(console, "PS4")) {
+                URL = TROPHY_GROUPS_EARNED_PS4.getUrl(npcommunicationid);
+            } else {
+                log.warn("未适配该游戏机");
+                continue;
+            }
+            Gson gson = new Gson();
+            String trophyGroupsResponseString = HttpUtils.okHttpGet(URL, header);
+            JsonElement trophyGroupsJsonElement = gson.fromJson(trophyGroupsResponseString, JsonElement.class);
+            if (trophyGroupsJsonElement.isJsonObject()) {
+                TrophyTitles trophyTitles = gson.fromJson(trophyGroupsJsonElement, TrophyTitles.class);
+                List<TrophyGroups> trophyGroupsList = trophyTitles.getTrophyGroups();
+                for (TrophyGroups trophyGroups : trophyGroupsList) {
+                    String trophyGroupId = trophyGroups.getTrophyGroupId();
+                    Trophies earnedTrophies = trophyGroups.getEarnedTrophies();
+                    PsGameTrophy gameTrophy = new PsGameTrophy();
+                    gameTrophy.setNpcommunicationid(npcommunicationid + "_" + trophyGroupId);
+                    gameTrophy.setEarnedbronze(earnedTrophies.getBronze());
+                    gameTrophy.setEarnedsilver(earnedTrophies.getSilver());
+                    gameTrophy.setEarnedgold(earnedTrophies.getGold());
+                    gameTrophy.setEarnedplatinum(earnedTrophies.getPlatinum());
+                    updateList.add(gameTrophy);
+                }
+            }
         }
-        String trophyGroupsResponseString = HttpUtils.okHttpGet(URL, header);
-        System.err.println(trophyGroupsResponseString);
+        psGameTrophyService.updateBatchById(updateList);
     }
+
 
     private static String extractCodeValue(String url) {
         Pattern pattern = Pattern.compile("code=([^&]+)");

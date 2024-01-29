@@ -1,5 +1,6 @@
 package com.p1casso.Utils;
 
+import com.p1casso.exception.P1cassoException;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 
@@ -59,20 +60,37 @@ public class HttpUtils {
      * @param header 请求头
      * @return 请求的返回值
      */
-    public static ResponseBody okHttpPost(String url, Map<String, String> header, FormBody.Builder body) throws IOException {
-        OkHttpClient client = new OkHttpClient();
-        Request.Builder builder = new Request.Builder();
-        builder.url(url)
-                .post(body.build());
+//    public static ResponseBody okHttpPost(String url, Map<String, String> header, FormBody.Builder body) throws IOException {
+//        OkHttpClient client = new OkHttpClient();
+//        Request.Builder builder = new Request.Builder();
+//        builder.url(url)
+//                .post(body.build());
+//
+//        if (header != null) {
+//            header.forEach(builder::addHeader);
+//        }
+//
+//        Request request = builder.build();
+//        Response response;
+//        response = client.newCall(request).execute();
+//        return response.body();
+//    }
+
+    public static String okHttpPost(String url, Map<String, String> header, FormBody.Builder body) {
+        OkHttpClient client = new OkHttpClient.Builder().build(); // 共享 OkHttpClient
+        Request.Builder builder = new Request.Builder().url(url).post(body.build());
 
         if (header != null) {
             header.forEach(builder::addHeader);
         }
 
-        Request request = builder.build();
-        Response response;
-        response = client.newCall(request).execute();
-        return response.body();
+        try (Response response = client.newCall(builder.build()).execute()) {
+            return response.body().string();
+        } catch (Exception e) {
+            // 处理或传播异常
+            throw new P1cassoException("HTTP请求失败，" + e);
+        }
     }
+
 
 }

@@ -24,7 +24,7 @@ public class GamePlan implements Serializable {
     /**
      * 主键id
      */
-    @TableId(value = "id",  type = IdType.ASSIGN_ID)
+    @TableId(value = "id", type = IdType.ASSIGN_ID)
     @JsonFormat(shape = JsonFormat.Shape.STRING)
     @JSONField(serializeUsing = ToStringSerializer.class)
     private String id;

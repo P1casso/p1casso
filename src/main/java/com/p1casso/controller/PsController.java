@@ -7,21 +7,23 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.p1casso.Utils.Result;
 import com.p1casso.entity.PsAccount;
 import com.p1casso.entity.PsGameTrophy;
-import com.p1casso.enums.ConsoleEnum;
 import com.p1casso.exception.P1cassoException;
 import com.p1casso.service.impl.PsAccountServiceImpl;
 import com.p1casso.service.impl.PsGameTrophyServiceImpl;
+import com.p1casso.service.impl.PsTrophyServiceImpl;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
+@Slf4j
 @RestController
 @RequestMapping("/ps")
 public class PsController {
@@ -35,12 +37,8 @@ public class PsController {
     @Resource
     private RabbitTemplate rabbitTemplate;
 
-    @GetMapping("/login")
-    public Result<String> login() throws IOException {
-        Map<String, String> login = psAccountService.login();
-        System.err.println(login);
-        return Result.success();
-    }
+    @Resource
+    private PsTrophyServiceImpl psTrophyService;
 
     @GetMapping("/refresh_trophy_statistics")
     public Result<String> refreshTrophyStatistics() {
@@ -58,8 +56,8 @@ public class PsController {
     }
 
     @GetMapping("/test")
-    public Result<PsAccount> test() throws IOException {
-        psAccountService.updateGroupsTrophy("NPWR12518_00", ConsoleEnum.PS5);
+    public Result<PsAccount> test() {
+        psTrophyService.InsertOrUpdateTrophy();
         return Result.success();
     }
 
@@ -67,8 +65,13 @@ public class PsController {
     public Result<String> getAndReTrophyTitles() {
         String exchangeName = "p1casso.ps.direct";
         rabbitTemplate.convertAndSend(exchangeName, "trophyTitles", "");
-        //psAccountService.getTrophyTitles();
         return Result.success();
+    }
+
+    @GetMapping("/trophy_group/{npCommunicationId}")
+    public Result<PsGameTrophy> getTrophyGroupByNpCommunicationId(@PathVariable(value = "npCommunicationId") String id) {
+        PsGameTrophy trophyGroup = psGameTrophyService.getTrophyGroupByNpCommunicationId(id);
+        return Result.success(trophyGroup);
     }
 
     @GetMapping("/game_list")
@@ -108,5 +111,4 @@ public class PsController {
         });
         return Result.success(trees);
     }
-
 }
