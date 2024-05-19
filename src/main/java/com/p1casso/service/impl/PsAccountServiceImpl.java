@@ -298,9 +298,9 @@ public class PsAccountServiceImpl extends ServiceImpl<PsAccountMapper, PsAccount
             //addGroup
             if (title.isHasTrophyGroups()) {
                 String npCommunicationId = title.getNpCommunicationId();
-                if (!Objects.equals(title.getTrophyTitlePlatform(), "PS5")) {
+                if (!Objects.equals(title.getTrophyTitlePlatform(), "PS5") && !title.getTrophyTitlePlatform().equals("PS5,PSPC")) {
                     updateOrInsertList.addAll(insertOrUpdateTrophyGroup(PS4_AND_OTHERS, npCommunicationId, header));
-                } else if (title.getTrophyTitlePlatform().equals("PS5")) {
+                } else if (title.getTrophyTitlePlatform().equals("PS5") || title.getTrophyTitlePlatform().equals("PS5,PSPC")) {
                     updateOrInsertList.addAll(insertOrUpdateTrophyGroup(PS5, npCommunicationId, header));
                 }
             }

@@ -71,6 +71,7 @@ public class PsTrophyServiceImpl extends ServiceImpl<PsTrophyMapper, PsTrophy> i
                         PsTrophy psTrophy = new PsTrophy();
                         psTrophy.setId(npcommunicationid + "_" + trophies.getTrophyId());
                         psTrophy.setNpcommunicationid(npcommunicationid);
+                        psTrophy.setTrophyGroupId(trophies.getTrophyGroupId());
                         psTrophy.setTrophyid(trophies.getTrophyId());
                         psTrophy.setTrophyname(trophies.getTrophyName());
                         psTrophy.setTrophydetail(trophies.getTrophyDetail());

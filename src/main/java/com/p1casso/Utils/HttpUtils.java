@@ -10,8 +10,8 @@ import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class HttpUtils {
-    private static final OkHttpClient OKHTTP_CLIENT = new OkHttpClient.Builder().connectTimeout(120, TimeUnit.SECONDS).readTimeout(120, TimeUnit.SECONDS).writeTimeout(120, TimeUnit.SECONDS).build();
 
+    private static final OkHttpClient OKHTTP_CLIENT = new OkHttpClient.Builder().connectTimeout(120, TimeUnit.SECONDS).readTimeout(120, TimeUnit.SECONDS).writeTimeout(120, TimeUnit.SECONDS).build();
 
     /**
      * 发送GET请求
@@ -60,22 +60,6 @@ public class HttpUtils {
      * @param header 请求头
      * @return 请求的返回值
      */
-//    public static ResponseBody okHttpPost(String url, Map<String, String> header, FormBody.Builder body) throws IOException {
-//        OkHttpClient client = new OkHttpClient();
-//        Request.Builder builder = new Request.Builder();
-//        builder.url(url)
-//                .post(body.build());
-//
-//        if (header != null) {
-//            header.forEach(builder::addHeader);
-//        }
-//
-//        Request request = builder.build();
-//        Response response;
-//        response = client.newCall(request).execute();
-//        return response.body();
-//    }
-
     public static String okHttpPost(String url, Map<String, String> header, FormBody.Builder body) {
         OkHttpClient client = new OkHttpClient.Builder().build(); // 共享 OkHttpClient
         Request.Builder builder = new Request.Builder().url(url).post(body.build());

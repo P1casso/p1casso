@@ -83,6 +83,7 @@ public class PsController {
         List<Tree<String>> trees = TreeUtil.build(list, "0", config, (object, tree) -> {
             tree.setId(object.getNpcommunicationid());
             tree.setParentId(object.getPnpcommunicationid());
+            tree.putExtra("trophy_group_id", object.getTrophygroupid());
             tree.putExtra("platform", object.getTrophytitleplatform());
             tree.putExtra("definedBronze", object.getEarnedbronze() + "/" + object.getDefinedbronze());
             tree.putExtra("definedSilver", object.getEarnedsilver() + "/" + object.getDefinedsilver());

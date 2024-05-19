@@ -28,10 +28,8 @@ public class PsTrophy implements Serializable {
      */
     private String npcommunicationid;
 
-    /**
-     *
-     */
-    private String hastrophygroups;
+
+    private String trophyGroupId;
 
     /**
      *
